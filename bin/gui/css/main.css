@@ -105,6 +105,10 @@ p {
 	cursor: pointer;
 }
 
+.mod-action-button-red {
+	color: #ff3333;
+}
+
 .mod-empty-action-button {
 	width: 10px;
 	height: 20px;
