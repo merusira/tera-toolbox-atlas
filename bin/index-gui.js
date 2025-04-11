@@ -14,6 +14,12 @@ function dialogAndQuit(data) {
     app.exit();
 }
 
+// Show error dialog without quitting
+function dialogOnly(data) {
+    const { dialog } = require('electron');
+    dialog.showMessageBoxSync(data);
+}
+
 // Splash Screen
 let SplashScreen = null;
 let SplashScreenShowTime = 0;
@@ -219,13 +225,16 @@ function main() {
             if (errors && errors.length > 0) {
                 let errmsg = `TeraAtlas was unable to update itself. If the problem persists, ask here ${SupportURL} for help!\n\nThe full error message is:\n\n------------------------------\n`;
                 errmsg += errors.join('\n------------------------------\n');
-                errmsg += '\n------------------------------\n\nThe program will now be terminated.';
+                errmsg += '\n------------------------------\n\nThe program will continue running, but some features may not work correctly.';
 
-                dialogAndQuit({
+                dialogOnly({
                     type: 'error',
                     title: 'Self-update error!',
                     message: errmsg
                 });
+                
+                // Continue to run the application even if update failed
+                hideSplashScreen(run);
             } else {
                 const { updateRequired, update } = require('./update-electron.js');
                 if (updateRequired()) {
@@ -235,22 +244,28 @@ function main() {
                     update().then(() => {
                         app.exit();
                     }).catch(e => {
-                        dialogAndQuit({
+                        dialogOnly({
                             type: 'error',
                             title: 'Electron update error!',
-                            message: `TeraAtlas was unable to update Electron. If the problem persists, ask here ${SupportURL} for help!\n\nThe full error message is:\n${e}\n\nThe program will now be terminated.`
+                            message: `TeraAtlas was unable to update Electron. If the problem persists, ask here ${SupportURL} for help!\n\nThe full error message is:\n${e}\n\nThe program will continue running, but some features may not work correctly.`
                         });
+                        
+                        // Continue to run the application even if Electron update failed
+                        hideSplashScreen(run);
                     });
                 } else {
                     hideSplashScreen(run);
                 }
             }
         }).catch(e => {
-            dialogAndQuit({
+            dialogOnly({
                 type: 'error',
                 title: 'Self-update error!',
-                message: `TeraAtlas was unable to update itself. If the problem persists, ask here ${SupportURL} for help!\n\nThe full error message is:\n${e}\n\nThe program will now be terminated.`
+                message: `TeraAtlas was unable to update itself. If the problem persists, ask here ${SupportURL} for help!\n\nThe full error message is:\n${e}\n\nThe program will continue running, but some features may not work correctly.`
             });
+            
+            // Continue to run the application even if update failed
+            hideSplashScreen(run);
         });
     }
 }
