@@ -1,7 +1,5 @@
 const mui = require('tera-toolbox-mui').DefaultInstance;
-const fetch = require('node-fetch');
-const http = require('http');
-const https = require('https');
+const { fetchWithPooling } = require('./utils/http-client');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -45,13 +43,7 @@ function walkdir(dir, listFiles = true, listDirs = false, listRootDir = "") {
     return results;
 }
 
-let HTTPAgent = new http.Agent({
-    keepAlive: true
-});
-let HTTPSAgent = new https.Agent({
-    keepAlive: true,
-    rejectUnauthorized: false // temporary fix for Let's Encrypt certificate issues
-});
+// HTTP/HTTPS agents are now managed by the http-client module
 
 async function autoUpdateFile(file, filepath, url, drmKey, expectedHash = null, receiveAs = "buffer") {
     try {
@@ -59,7 +51,7 @@ async function autoUpdateFile(file, filepath, url, drmKey, expectedHash = null, 
         if (drmKey)
             fileUrl.searchParams.append('drmkey', drmKey);
 
-        const requestPayload = await fetch(fileUrl, { "agent": (fileUrl.protocol === "https:") ? HTTPSAgent : HTTPAgent });
+        const requestPayload = await fetchWithPooling(fileUrl);
         if (!requestPayload.ok)
             throw `ERROR: ${ url }\nCan't download file from update server (${ requestPayload.status } - ${requestPayload.statusText})! Possible causes:\n   + Incorrect manifest specified by developer\n   + Server is not available anymore\n   + Access denied\n   + Internal server error`;
 

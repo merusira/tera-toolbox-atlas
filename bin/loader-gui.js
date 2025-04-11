@@ -64,9 +64,9 @@ let CachedAvailableModuleList = null;
 async function getInstallableMods(forceRefresh = false) {
 	// (Re)download list of all available modules if required
 	if (!CachedAvailableModuleList || forceRefresh) {
-		const fetch = require("node-fetch");
+		const { fetchWithPooling } = require("./utils/http-client");
 		try {
-			CachedAvailableModuleList = await (await fetch(AvailableModuleListUrl)).json();
+			CachedAvailableModuleList = await (await fetchWithPooling(AvailableModuleListUrl)).json();
 		} catch (e) {
 			showError(e.toString());
 			return [];
@@ -178,6 +178,10 @@ const isWindows = process.platform === "win32";
 
 function cleanExit() {
 	console.log(mui.get("loader-gui/terminating"));
+
+	// Clean up HTTP/HTTPS connections
+	const { cleanupConnections } = require("./utils/http-client");
+	cleanupConnections();
 
 	StopProxy().then(() => {
 		if (isWindows)
@@ -448,6 +452,10 @@ class TeraProxyGUI {
 		if (this.window !== null) {
 			stopUpdateCheck();
 			StopProxy();
+
+			// Clean up HTTP/HTTPS connections
+			const { cleanupConnections } = require("./utils/http-client");
+			cleanupConnections();
 
 			this.window.close();
 			this.window = null;

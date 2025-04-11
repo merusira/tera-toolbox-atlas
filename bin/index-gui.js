@@ -2,6 +2,9 @@
 'use strict';
 require('module').wrapper[0] += `'use strict';`;
 
+// Initialize HTTP client with connection pooling to prevent MaxListenersExceededWarning
+require('./utils/http-client');
+
 const SupportURL = 'https://github.com/merusira/tera-toolbox-atlas/issues';
 
 const { app } = require('electron');
