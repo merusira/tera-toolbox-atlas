@@ -3,8 +3,8 @@
     "uilanguage": "en",
     "updatelog": false,
     "devmode": false,
-    "noselfupdate": true,
-    "noupdate": true,
+    "noselfupdate": false,
+    "noupdate": false,
     "noslstags": false,
     "removecounters": false,
     "gui": {

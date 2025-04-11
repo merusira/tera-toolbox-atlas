@@ -103,6 +103,7 @@ class Updater extends EventEmitter {
                 operations
             };
         } catch (e) {
+            console.log(`[update-self] Check failed (Server: ${serverIndex}): ${e}`);
             this.emit('check_fail', serverIndex, e);
 
             if (serverIndex + 1 < AutoUpdateServers.length) {
