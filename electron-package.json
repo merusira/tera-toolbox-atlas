@@ -1,0 +1,20 @@
+{
+  "name": "tera-atlas",
+  "version": "1.0.1",
+  "description": "Comprehensive modding framework for TERA.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . TeraAtlas --platform=win32 --arch=x64 --icon=bin/gui/assets/icon.ico --out=dist/ --overwrite"
+  },
+  "author": "merusira",
+  "contributors": [
+    "Caali",
+    "Pinkie Pie",
+    "meishu"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^11.0.5"
+  }
+}
