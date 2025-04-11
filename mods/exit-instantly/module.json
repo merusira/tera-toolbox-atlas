@@ -1,0 +1,13 @@
+{
+    "disableAutoUpdate": false,
+    "name": "exit-instantly",
+    "author": "teralove",
+    "description": "Exit the game without having to wait 10 seconds.",
+    "version": "1/24/2019",
+    "options": {
+        "guiName": "Exit Instantly",
+        "cliName": "Exit Instantly"
+    },
+    "servers": ["https://raw.githubusercontent.com/tera-private-mods/exit-instantly/master/"],
+    "supportUrl": "https://github.com/teralove/exit-instantly/issues"
+}

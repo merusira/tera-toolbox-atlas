@@ -1,0 +1,18 @@
+{
+	"files": {
+		"doc/contract.md": "f872ec8ac7fdd48c7cc7ef1b5cd164b6221b467f0ce422ed30f3e2fee187cd59",
+		"doc/data.md": "82470c169c0354f6500f0456804d72c310ef3ea63cc2c4677b0cbdd17798f850",
+		"doc/glyphs.md": "282cd028c37e8afa28dd22bcd1d638bceb1447e60858a8a6b21fe327d874b4be",
+		"doc/inventory.md": "a9cff75b917845bbe4c1d37ea2bd6500597e30978156c066900d5115f0b5b22d",
+		"doc/me.md": "80239e1d6d6e2afee5b0e330f476abed736e69209a77cb462fbfef227927e4e3",
+		"doc/party.md": "b3f2cc47d24a0965f0eeef0c09353720122738f1631a6263601f8b192c8cf2f4",
+		"index.js": "d33e2f46274c00b2443d85493353a088d003470a39fafcbfb105b26630984ef5",
+		"lib/contract.js": "23b979179caf0fe21b22501d166b4a393af3bbabbfa48915df1323c77142bace",
+		"lib/glyphs.js": "0c3c5e48f39fadc6ac0189712f78d2557e18eaaae967044758cd89a42bbd59d2",
+		"lib/inventory.js": "299e2db3cb9f43a5647df0532d6f6327d1f0988daca18eb039272f4b0ef21c65",
+		"lib/me.js": "dd46c986e66a6a388942ee273cb345e512844dff1cd0580fb6900b2b3bcbd222",
+		"lib/party.js": "1a22d9b6b98c6b981db2d1116a51af430df902d7fb5664c7c2e3adfd602828c5",
+		"module.json": "40add7bff63b8c55547f9e62ef82dd58fee617aa223c3ed9fdad8b8fca7f8d86",
+		"README.md": "d92ebf292730c0d7e4086681d06acfd856e390b527c966f65bf0eb3041c6b87d"
+	}
+}

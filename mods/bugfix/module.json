@@ -1,0 +1,11 @@
+{
+    "name": "bugfix0",
+    "author": "Do Not try to Update this mod.",
+    "description": "Collection of mods that fix some of the most severe client bugs in TERA.",
+    "version": "1.0",
+    "options": {
+        "cliName": "Bugfix0",
+        "guiName": "Bugfix0"
+    },
+    "servers": ["do_not_update"]
+}
