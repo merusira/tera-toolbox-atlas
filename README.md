@@ -1,4 +1,4 @@
-## :information_source: Patch 29.04/31.04 support
+## :information_source: Patch 31.04 support
 
 * Unofficial version of the TERA Toolbox for patch 29.04/31.04 with auto-updates of all supported modules.
 * You can get some modules available on the `Get More Mods` tab.
