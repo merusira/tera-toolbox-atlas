@@ -29,6 +29,17 @@ async function fetchWithPooling(url, options = {}) {
     const parsedUrl = new URL(url);
     const agent = parsedUrl.protocol === 'https:' ? httpsAgent : httpAgent;
     
+    // Add listener cleanup to prevent memory leaks
+    agent.on('free', (socket) => {
+        // Remove excess listeners when socket is freed
+        if (socket.listenerCount('close') > 1) {
+            const listeners = socket.listeners('close');
+            for (let i = 1; i < listeners.length; i++) {
+                socket.removeListener('close', listeners[i]);
+            }
+        }
+    });
+    
     // Merge options with our agent
     const fetchOptions = {
         ...options,
