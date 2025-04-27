@@ -1,0 +1,11 @@
+{
+	"files": {
+		"index.js": "6c675389133060a7d5c4f465f011e3d2b6553b82bcb0d6c0cda8f6e7dc46667f",
+		"module.json": "c02f007528f099092d9fec8f27e34f92fbd0d252f14a076b5d0887638c32cfad",
+		"lib/chat-sanitizer.js": "527ee0ea6b2773ebc9841a50c044d087c73e59534c447e364a0ee65ff022e81c",
+		"lib/swim-fix.js": "30dadfa58eaa4057e41a6e5139f8f793da9b793885753356b120bdabeaeae12a",
+		"README.md": "0781243fdf75909775470c1731d3f3e0b69887c235b9c0b629be1d502cf84093",
+		"lib/private-channel-fix.js": "c6f5c5ce1e9f9e16c0261127f00db844d4279ca1970b306ff6d15f2fae37e792",
+		"lib/gear-upgrade-crash-fix.js": "055519ebeefced10960340d53cfbed6b6fee8b2fc4b1ac5c32167a69bad707e5"
+	}
+}
