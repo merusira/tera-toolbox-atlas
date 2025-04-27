@@ -13,7 +13,8 @@
         "logtimes": true,
         "cleanstart": false,
         "maximized": false,
-        "width": 1106,
-        "height": 622
-    }
+        "width": 1080,
+        "height": 600
+    },
+    "patchVersion": "34.04 Omni"
 }
