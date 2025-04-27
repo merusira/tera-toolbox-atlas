@@ -538,6 +538,7 @@ class TeraProxyGUI {
 			resizable: true,
 			centered: true,
 			show: false,
+			skipTaskbar: true,
 			webPreferences: {
 				nodeIntegration: true,
 				enableRemoteModule: true,
@@ -565,7 +566,7 @@ class TeraProxyGUI {
 			SaveConfiguration(config);
 		});
 		
-		//this.window.on('minimize', () => { this.window.hide(); });
+		this.window.on('minimize', () => { this.window.hide(); });
 		this.window.on("closed", () => { StopProxy(); this.window = null; });
 		
 		// Initialize tray icon
@@ -573,7 +574,21 @@ class TeraProxyGUI {
 		this.tray.setToolTip("TeraAtlas");
 		this.tray.setContextMenu(Menu.buildFromTemplate([
 			{
-				"label": mui.get("loader-gui/tray/quit"),
+				"label": mui.get("loader-gui/tray/show") || "Show",
+				"click": () => {
+					if (this.window) {
+						this.window.show();
+						if (this.window.isMinimized())
+							this.window.restore();
+						this.window.focus();
+					}
+				}
+			},
+			{
+				"type": "separator"
+			},
+			{
+				"label": mui.get("loader-gui/tray/quit") || "Quit",
 				"click": () => { app.exit(); }
 			}
 		]));
