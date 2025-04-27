@@ -53,17 +53,28 @@
 		<input type="radio" name="tabs" id="tabthree" data-tab="3">
 		<label for="tabthree">
 			<span class="mdi mdi-archive-arrow-down-outline"></span>
-			<span mui="gui/main/static/tabs/newmods/title"></span>: Patch 34.04
+			<span id="newmods-tab-title" mui="gui/main/static/tabs/newmods/title"></span>: <span id="patch-version-display">Patch 34.04</span>
 		</label>
 		<input type="radio" name="tabs" id="tabfour" data-tab="4">
 		<label for="tabfour">
 			<span class="mdi mdi-cog-outline"></span>
 			<span mui="gui/main/static/tabs/settings/title"></span>
 		</label>
-		<button id="startproxy-btn" tabindex="-1">
-			<span id="startproxyicon" class="mdi mdi-play-pause"></span>
-			<span id="startproxy"></span>
-		</button>
+		<div class="patch-selector">
+			<select id="patchVersion">
+				<option value="34.04 Omni">Patch 34 (Omni)</option>
+				<option value="100.02 Starscape">Patch 100 (Starscape)</option>
+			</select>
+		</div>
+		<div class="right-controls">
+			<div class="patch-banner">
+				<img id="patchBanner" src="assets/banner-omni.png" alt="Patch Banner">
+			</div>
+			<button id="startproxy-btn" tabindex="-1">
+				<span id="startproxyicon" class="mdi mdi-play-pause"></span>
+				<span id="startproxy"></span>
+			</button>
+		</div>
 	</div>
 
 	<!-- Logs -->
@@ -178,6 +189,15 @@
 			</div>
 			<div class="setting-transparent noselect">
 				<div mui="gui/main/static/tabs/settings/groupclient"></div>
+			</div>
+			<div class="setting noselect">
+				<div>Patch Version</div>
+				<div>
+					<select id="patchVersionSetting">
+						<option value="34.04 Omni">Patch 34 (Omni)</option>
+						<option value="100.02 Starscape">Patch 100 (Starscape)</option>
+					</select>
+				</div>
 			</div>
 			<div class="setting noselect">
 				<div mui="gui/main/static/tabs/settings/content/noslstags"></div>
