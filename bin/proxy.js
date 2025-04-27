@@ -1,6 +1,7 @@
 ﻿const mui = require('tera-toolbox-mui').DefaultInstance;
 const path = require('path');
 const fs = require('fs');
+const PatchManager = require('./patch-manager');
 
 function PublisherFromLanguage(language) {
     switch (language.toUpperCase()) {
@@ -30,28 +31,80 @@ function LoadProtocolMap(dataFolder, version) {
     const parseMap = require('tera-data-parser').parsers.Map;
     const filename = `protocol.${version}.map`;
 
-    // Load base
-    const data = JSON.parse(fs.readFileSync(path.join(dataFolder, 'data.json')));
-    let baseMap = data.maps[version] || {};
-
-    // Load custom
-    let customMap = {};
-    try {
-        customMap = parseMap(path.join(dataFolder, 'opcodes', filename));
-    } catch (e) {
-        if (e.code !== 'ENOENT')
-            throw e;
+    // Fix nested patch100 folders in dataFolder path
+    if (dataFolder.includes('patch100\\patch100') || dataFolder.includes('patch100/patch100')) {
+        //console.warn(`Fixing nested patch100 folders in data path: ${dataFolder}`);
+        dataFolder = dataFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+        dataFolder = dataFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
     }
 
-    return Object.assign(customMap, baseMap);
+    // Load base
+    try {
+        const dataJsonPath = path.join(dataFolder, 'data.json');
+        console.log(`Loading data.json from: ${dataJsonPath}`);
+        const data = JSON.parse(fs.readFileSync(dataJsonPath));
+        let baseMap = data.maps[version] || {};
+
+        // Load custom
+        let customMap = {};
+        try {
+            customMap = parseMap(path.join(dataFolder, 'opcodes', filename));
+        } catch (e) {
+            if (e.code !== 'ENOENT')
+                throw e;
+        }
+
+        return Object.assign(customMap, baseMap);
+    } catch (e) {
+        console.error(`Error loading data.json: ${e.message}`);
+        console.error(`Attempted path: ${path.join(dataFolder, 'data.json')}`);
+        
+        // Try to find the correct path by removing nested patch100 folders
+        if (dataFolder.includes('patch100')) {
+            const rootDir = path.dirname(path.dirname(dataFolder));
+            const correctedPath = path.join(rootDir, 'patch100', 'data');
+            console.log(`Trying corrected path: ${correctedPath}`);
+            
+            try {
+                const data = JSON.parse(fs.readFileSync(path.join(correctedPath, 'data.json')));
+                let baseMap = data.maps[version] || {};
+                return baseMap;
+            } catch (innerError) {
+                console.error(`Error with corrected path: ${innerError.message}`);
+                throw e; // Throw the original error if the corrected path also fails
+            }
+        } else {
+            throw e;
+        }
+    }
 }
 
 class TeraProxy {
     constructor(modFolder, dataFolder, config) {
-        this.modFolder = modFolder;
-        this.dataFolder = dataFolder;
         this.config = config;
         this.running = false;
+
+        // Initialize patch manager
+        const rootDir = path.dirname(modFolder);
+        this.patchManager = new PatchManager(rootDir);
+        
+        // Make patch manager globally accessible
+        global.TeraProxy.PatchManager = this.patchManager;
+        
+        // Set initial patch version
+        this.patchManager.currentPatch = config.patchVersion || '34.04 Omni';
+        
+        // Get folder paths based on current patch
+        this.modFolder = this.patchManager.getPath('mods');
+        this.dataFolder = this.patchManager.getPath('data');
+        
+        // Add node_modules path if needed
+        if (this.patchManager.currentPatch !== '34.04 Omni') {
+            const nodeModulesPath = this.patchManager.getPath('node_modules');
+            if (!module.paths.includes(nodeModulesPath)) {
+                module.paths.unshift(nodeModulesPath);
+            }
+        }
 
         this.listenIp = config.listenip || '127.0.0.20';
         this.listenPort = config.listenport || 9250;
@@ -104,8 +157,86 @@ class TeraProxy {
             this.connectionManager.destructor();
             this.connectionManager = null;
         }
+        
+        // Clean up patch manager
+        if (this.patchManager) {
+            this.patchManager.removeAllListeners();
+            this.patchManager = null;
+        }
+        
+        // Clear any global references
+        if (global.TeraProxy.PatchManager) {
+            global.TeraProxy.PatchManager = null;
+        }
 
         this.running = false;
+    }
+
+    // Add methods for dynamic mod loading/unloading with resource cleanup
+    async unloadAllMods() {
+        // Unload mods from all active connections
+        if (this.connectionManager) {
+            for (const connection of this.connectionManager.activeConnections) {
+                this.modManager.unloadAllNetwork(connection.dispatch);
+                
+                // Clean up dispatch resources
+                if (connection.dispatch) {
+                    connection.dispatch.reset();
+                    
+                    // Clear any timers or intervals
+                    if (connection.dispatch._timers) {
+                        connection.dispatch._timers.forEach(timer => clearTimeout(timer));
+                        connection.dispatch._timers = [];
+                    }
+                }
+            }
+        }
+        
+        // Unload all client mods
+        if (this.clientInterfaceServer) {
+            for (const client of this.clientInterfaceServer.clients) {
+                this.modManager.unloadAllClient(client);
+                
+                // Clean up client resources
+                if (client.GPKManager) {
+                    client.GPKManager.cleanup();
+                }
+            }
+        }
+        
+        // Clean up mod manager resources
+        if (this.modManager) {
+            this.modManager.cleanup();
+        }
+    }
+
+    async loadAllMods() {
+        // Reload the mod manager with the new mod folder
+        this.modManager = new ModManager(this.modFolder);
+        this.modManager.loadAll();
+        
+        // Load mods for all active connections
+        if (this.connectionManager) {
+            for (const connection of this.connectionManager.activeConnections) {
+                this.modManager.loadAllNetwork(connection.dispatch);
+            }
+        }
+        
+        // Load mods for all clients
+        if (this.clientInterfaceServer) {
+            for (const client of this.clientInterfaceServer.clients) {
+                this.modManager.loadAllClient(client);
+            }
+        }
+    }
+
+    // Method to switch patch version
+    async switchPatch(newPatch) {
+        await this.patchManager.switchPatch(newPatch, this);
+        
+        // Update config
+        this.config.patchVersion = newPatch;
+        require('./config').saveConfig(this.config);
     }
 
     run() {
@@ -117,6 +248,13 @@ class TeraProxy {
     }
 
     redirect(name, ip, port, metadata, clientInterfaceConnection) {
+        // Fix nested patch100 folders in metadata.dataFolder
+        if (metadata.dataFolder && (metadata.dataFolder.includes('patch100\\patch100') || metadata.dataFolder.includes('patch100/patch100'))) {
+            //console.warn(`Fixing nested patch100 folders in metadata.dataFolder: ${metadata.dataFolder}`);
+            metadata.dataFolder = metadata.dataFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+            metadata.dataFolder = metadata.dataFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+        }
+        
         // Try to find server that's already listening
         const key = `${metadata.platform}-${metadata.publisher}-${metadata.environment}-${metadata.majorPatchVersion}.${metadata.minorPatchVersion}-${metadata.serverId}-${ip}:${port}`;
         const cached = clientInterfaceConnection.proxyServers.get(key);
@@ -223,8 +361,18 @@ class TeraProxy {
                             if (!this.config.noslstags)
                                 patched_server.title += TagFromLanguage(client.info.language);
 
+                            // Create metadata for the redirected server
+                            let dataFolder = this.dataFolder;
+                            
+                            // Fix nested patch100 folders in dataFolder
+                            if (dataFolder && (dataFolder.includes('patch100\\patch100') || dataFolder.includes('patch100/patch100'))) {
+                                //console.warn(`Fixing nested patch100 folders in redirected_server_metadata.dataFolder: ${dataFolder}`);
+                                dataFolder = dataFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+                                dataFolder = dataFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+                            }
+                            
                             const redirected_server_metadata = {
-                                dataFolder: this.dataFolder,
+                                dataFolder: dataFolder,
                                 serverId: server.id,
                                 serverList: serverlist,
                                 platform: client.info.platform,

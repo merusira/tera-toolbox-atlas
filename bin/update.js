@@ -7,6 +7,13 @@ const { URL } = require('url');
 const { CoreModules, listModuleInfos } = require('tera-mod-management');
 
 function forcedirSync(dir) {
+    // Check if the directory contains nested patch100 folders
+    if (dir.includes('patch100\\patch100') || dir.includes('patch100/patch100')) {
+        console.warn(`Preventing creation of nested patch100 folder: ${dir}`);
+        // Fix the path by removing the nested patch100
+        dir = dir.replace(/patch100[\/\\]patch100/g, 'patch100');
+    }
+    
     const sep = path.sep;
     const initDir = path.isAbsolute(dir) ? sep : '';
     dir.split(sep).reduce((parentDir, childDir) => {
@@ -47,6 +54,13 @@ function walkdir(dir, listFiles = true, listDirs = false, listRootDir = "") {
 
 async function autoUpdateFile(file, filepath, url, drmKey, expectedHash = null, receiveAs = "buffer") {
     try {
+        // Check if the filepath contains nested patch100 folders
+        if (filepath.includes('patch100\\patch100') || filepath.includes('patch100/patch100')) {
+            console.warn(`Preventing file creation in nested patch100 folder: ${filepath}`);
+            // Fix the path by removing the nested patch100
+            filepath = filepath.replace(/patch100[\/\\]patch100/g, 'patch100');
+        }
+        
         let fileUrl = new URL(url);
         if (drmKey)
             fileUrl.searchParams.append('drmkey', drmKey);
@@ -66,7 +80,7 @@ async function autoUpdateFile(file, filepath, url, drmKey, expectedHash = null, 
         }
         
         if (expectedHash && expectedHash !== hash(updatedFile))
-            throw "ERROR: " + url + "\nDownloaded file doesn't match hash specified in patch manifest! Possible causes:\n   + Incorrect manifest specified by developer\n   + NoPing (if you're using it) has a bug that can fuck up the download";
+            throw "ERROR: " + url + "\nDownloaded file doesn't match hash specified in patch manifest! Possible causes:\n   + Incorrect manifest specified by developer\n   + NoPing (if you're using it) has a bug that can mess up the download";
 
         forcedirSync(path.dirname(filepath));
         fs.writeFileSync(filepath, updatedFile);
@@ -98,6 +112,13 @@ function checkModuleUpdateUrlBlacklist(update_url_root) {
 
 async function autoUpdateModule(name, root, updateData, updatelog, updatelimit, serverIndex = 0) {
     try {
+        // Check if the root path contains nested patch100 folders
+        if (root.includes('patch100\\patch100') || root.includes('patch100/patch100')) {
+            console.warn(`Preventing module update in nested patch100 folder: ${root}`);
+            // Fix the path by removing the nested patch100
+            root = root.replace(/patch100[\/\\]patch100/g, 'patch100');
+        }
+        
         // If only one file (module.json) exists, it's a fresh install
         if (walkdir(root, true, false).length === 1)
             console.log(mui.get('update/start-module-install', { name }));
@@ -170,6 +191,14 @@ async function autoUpdateModule(name, root, updateData, updatelog, updatelimit, 
 
 async function autoUpdate(moduleBase, updatelog, updatelimit) {
     console.log(mui.get('update/started'));
+    
+    // Check if the moduleBase path contains nested patch100 folders
+    if (moduleBase.includes('patch100\\patch100') || moduleBase.includes('patch100/patch100')) {
+        console.warn(`Preventing auto-update in nested patch100 folder: ${moduleBase}`);
+        // Fix the path by removing the nested patch100
+        moduleBase = moduleBase.replace(/patch100[\/\\]patch100/g, 'patch100');
+    }
+    
     forcedirSync(moduleBase);
     await generateBlacklist();
 
@@ -185,7 +214,15 @@ async function autoUpdate(moduleBase, updatelog, updatelimit) {
 
         for (let coreModule in CoreModules) {
             if (!installedModuleInfos.some(mod => mod.name === coreModule.toLowerCase()) && addedModules.indexOf(coreModule) < 0) {
-                const coreModuleResult = await autoUpdateFile('module.json', path.join(moduleBase, coreModule, 'module.json'), CoreModules[coreModule]);
+                // Create the core module path and check for nested patch100 folders
+                let coreModulePath = path.join(moduleBase, coreModule, 'module.json');
+                if (coreModulePath.includes('patch100\\patch100') || coreModulePath.includes('patch100/patch100')) {
+                    console.warn(`Preventing core module installation in nested patch100 folder: ${coreModulePath}`);
+                    // Fix the path by removing the nested patch100
+                    coreModulePath = coreModulePath.replace(/patch100[\/\\]patch100/g, 'patch100');
+                }
+                
+                const coreModuleResult = await autoUpdateFile('module.json', coreModulePath, CoreModules[coreModule]);
                 if (!coreModuleResult[1])
                     throw new Error(`Unable to install core module "${coreModule}: ${coreModuleResult[2]}`);
                 console.log(mui.get('update/core-module-initialized', { coreModule }));
@@ -215,7 +252,15 @@ async function autoUpdate(moduleBase, updatelog, updatelimit) {
                         continue;
 
                     if (!installedModuleInfos.some(mod => mod.name === dependency.toLowerCase()) && addedModules.indexOf(dependency) < 0) {
-                        const dependency_result = await autoUpdateFile('module.json', path.join(moduleBase, dependency, 'module.json'), updateData["dependencies"][dependency]);
+                        // Create the dependency path and check for nested patch100 folders
+                        let dependencyPath = path.join(moduleBase, dependency, 'module.json');
+                        if (dependencyPath.includes('patch100\\patch100') || dependencyPath.includes('patch100/patch100')) {
+                            console.warn(`Preventing dependency installation in nested patch100 folder: ${dependencyPath}`);
+                            // Fix the path by removing the nested patch100
+                            dependencyPath = dependencyPath.replace(/patch100[\/\\]patch100/g, 'patch100');
+                        }
+                        
+                        const dependency_result = await autoUpdateFile('module.json', dependencyPath, updateData["dependencies"][dependency]);
                         if (!dependency_result[1])
                             throw new Error(`Unable to install dependency module "${dependency}: ${dependency_result[2]}`);
                         console.log(mui.get('update/dependency-module-initialized', { dependency, name: moduleInfo.rawName }));

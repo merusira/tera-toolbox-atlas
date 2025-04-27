@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const exec = require('child_process').exec;
 const { app, BrowserWindow, powerMonitor, Tray, Menu, ipcMain, shell } = require("electron");
 const DataFolder = path.join(__dirname, "..", "data");
@@ -57,11 +58,30 @@ function Migration() {
 }
 
 // Installed mod management
-const AvailableModuleListUrl = "https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json";
+let AvailableModuleListUrl = "https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json";
 const { listModuleInfos, installModule, uninstallModule, toggleAutoUpdate, toggleLoad } = require("tera-mod-management");
 
 let CachedAvailableModuleList = null;
 async function getInstallableMods(forceRefresh = false) {
+	// Update module list URL based on current patch version
+	if (config.patchVersion === '100.02 Starscape') {
+		AvailableModuleListUrl = 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-10002.json';
+	} else {
+		AvailableModuleListUrl = 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json';
+	}
+
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+
 	// (Re)download list of all available modules if required
 	if (!CachedAvailableModuleList || forceRefresh) {
 		const { fetchWithPooling } = require("./utils/http-client");
@@ -74,7 +94,7 @@ async function getInstallableMods(forceRefresh = false) {
 	}
 
 	// Filter out already installed mods
-	const installedModInfos = listModuleInfos(ModuleFolder);
+	const installedModInfos = listModuleInfos(modFolder);
 	return CachedAvailableModuleList.filter(modInfo => !installedModInfos.some(installedModInfo => installedModInfo.name === modInfo.name.toLowerCase()));
 }
 
@@ -104,9 +124,22 @@ function _StartProxy(ModuleFolder, ProxyConfig) {
 	}
 }
 
-async function StartProxy(ModuleFolder, ProxyConfig) {
+async function StartProxy(moduleFolder, ProxyConfig) {
 	if (proxy || proxyRunning)
 		return false;
+		
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = moduleFolder;
+	if (ProxyConfig.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(moduleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			//console.log(`Fixing nested patch100 folders in mod folder path: ${modFolder}`);
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
 
 	if (ProxyConfig.noupdate) {
 		console.warn(mui.get("loader-gui/warning-noupdate-1"));
@@ -118,7 +151,13 @@ async function StartProxy(ModuleFolder, ProxyConfig) {
 		const autoUpdate = require("./update");
 
 		try {
-			const updateResult = await autoUpdate(ModuleFolder, ProxyConfig.updatelog, true);
+			// Make sure the mod folder exists
+			if (!fs.existsSync(modFolder)) {
+				console.log(`Creating mod folder: ${modFolder}`);
+				fs.mkdirSync(modFolder, { recursive: true });
+			}
+			
+			const updateResult = await autoUpdate(modFolder, ProxyConfig.updatelog, true);
 			updateResult.legacy.forEach(mod => console.warn(mui.get("loader-gui/warning-update-mod-not-supported", { "name": mod.name })));
 			updateResult.failed.forEach(mod => console.error(mui.get("loader-gui/error-update-mod-failed", { "name": mod.name })));
 		} catch (e) {
@@ -127,7 +166,7 @@ async function StartProxy(ModuleFolder, ProxyConfig) {
 		}
 	}
 
-	return _StartProxy(ModuleFolder, ProxyConfig);
+	return _StartProxy(modFolder, ProxyConfig);
 }
 
 async function StopProxy() {
@@ -217,7 +256,20 @@ ipcMain.on("init", (event, _) => {
 	if (config.gui.autostart) {
 		event.sender.send("proxy starting");
 		console.log(mui.get("loader-gui/proxy-starting"));
-		StartProxy(ModuleFolder, config).then((result) => {
+		
+		// Get the appropriate mod folder based on the current patch version
+		let modFolder = ModuleFolder;
+		if (config.patchVersion === '100.02 Starscape') {
+			modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+			
+			// Fix nested patch100 folders in modFolder
+			if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+				modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+				modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+			}
+		}
+		
+		StartProxy(modFolder, config).then((result) => {
 			event.sender.send("proxy running", result);
 		});
 	}
@@ -229,7 +281,20 @@ ipcMain.on("start proxy", (event, _) => {
 
 	event.sender.send("proxy starting");
 	console.log(mui.get("loader-gui/proxy-starting"));
-	StartProxy(ModuleFolder, config).then((result) => {
+	
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	StartProxy(modFolder, config).then((result) => {
 		event.sender.send("proxy running", result);
 	});
 });
@@ -255,15 +320,87 @@ ipcMain.on("set config", (_, newConfig) => {
 });
 
 ipcMain.on("get mods", (event, _) => {
-	event.sender.send("set mods", listModuleInfos(ModuleFolder));
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	event.sender.send("set mods", listModuleInfos(modFolder));
+});
+
+// Add IPC handler for patch switching
+ipcMain.on("switch patch", (event, patchVersion) => {
+	// Always clear cached module list to force refresh when switching patches
+	CachedAvailableModuleList = null;
+	
+	// Print a message to the console log indicating which patch is selected
+	console.log(`===== PATCH SELECTED: ${patchVersion} =====`);
+	
+	if (proxy && proxyRunning) {
+		// If proxy is running, switch patch dynamically
+		console.log(mui.get("loader-gui/switching-patch", { patchVersion }) || `Switching to Patch ${patchVersion}...`);
+		
+		try {
+			proxy.switchPatch(patchVersion).then(() => {
+				console.log(mui.get("loader-gui/patch-switched", { patchVersion }) || `Successfully switched to Patch ${patchVersion}`);
+				//console.log(`Now using ${patchVersion === '100.02 Starscape' ? 'patch100/data' : 'data'} folder for game data`);
+				//console.log(`Now using ${patchVersion === '100.02 Starscape' ? 'patch100/mods' : 'mods'} folder for game mods`);
+				
+				// Refresh mod lists
+				event.sender.send("set config", config);
+				event.sender.send("get mods");
+				event.sender.send("get installable mods");
+			}).catch(err => {
+				console.error(mui.get("loader-gui/error-switching-patch", { error: err.message }) || `Error switching to Patch ${patchVersion}: ${err.message}`);
+				event.sender.send("error", mui.get("loader-gui/error-switching-patch", { error: err.message }) || `Error switching to Patch ${patchVersion}: ${err.message}`);
+			});
+		} catch (err) {
+			console.error(mui.get("loader-gui/error-switching-patch", { error: err.message }) || `Error switching to Patch ${patchVersion}: ${err.message}`);
+			event.sender.send("error", mui.get("loader-gui/error-switching-patch", { error: err.message }) || `Error switching to Patch ${patchVersion}: ${err.message}`);
+		}
+	} else {
+		// If proxy is not running, just update the config
+		config.patchVersion = patchVersion;
+		SaveConfiguration(config);
+		
+		// Print information about which folders will be used
+		//console.log(`Now using ${patchVersion === '100.02 Starscape' ? 'patch100/data' : 'data'} folder for game data`);
+		//console.log(`Now using ${patchVersion === '100.02 Starscape' ? 'patch100/mods' : 'mods'} folder for game mods`);
+		
+		// Refresh mod lists
+		event.sender.send("set config", config);
+		event.sender.send("get mods");
+		event.sender.send("get installable mods");
+	}
 });
 
 ipcMain.on("get installable mods", (event, _) => {
+	// Always clear the cache to force a refresh
+	CachedAvailableModuleList = null;
 	getInstallableMods(true).then(mods => event.sender.send("set installable mods", mods));
 });
 
 ipcMain.on("install mod", (event, modInfo) => {
-	installModule(ModuleFolder, modInfo);
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	installModule(modFolder, modInfo);
 	console.log(mui.get("loader-gui/mod-installed", { "name": modInfo.name }));
 	getInstallableMods().then(mods => event.sender.send("set installable mods", mods));
 });
@@ -271,23 +408,68 @@ ipcMain.on("install mod", (event, modInfo) => {
 ipcMain.on("toggle mod load", (event, modInfo) => {
 	toggleLoad(modInfo);
 	console.log(mui.get("loader-gui/mod-load-toggled", { "enabled": modInfo.disabled, "name": modInfo.rawName }));
-	event.sender.send("set mods", listModuleInfos(ModuleFolder));
+	
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	event.sender.send("set mods", listModuleInfos(modFolder));
 });
 
 ipcMain.on("toggle mod autoupdate", (event, modInfo) => {
 	toggleAutoUpdate(modInfo);
 	console.log(mui.get("loader-gui/mod-updates-toggled", { "updatesEnabled": modInfo.disableAutoUpdate, "name": modInfo.rawName }));
-	event.sender.send("set mods", listModuleInfos(ModuleFolder));
+	
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	event.sender.send("set mods", listModuleInfos(modFolder));
 });
 
 ipcMain.on("uninstall mod", (event, modInfo) => {
 	uninstallModule(modInfo);
 	console.log(mui.get("loader-gui/mod-uninstalled", { "name": modInfo.rawName }));
-	event.sender.send("set mods", listModuleInfos(ModuleFolder));
+	
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+		
+		// Fix nested patch100 folders in modFolder
+		if (modFolder.includes('patch100\\patch100') || modFolder.includes('patch100/patch100')) {
+			modFolder = modFolder.replace(/patch100[\/\\]patch100[\/\\]patch100/g, 'patch100');
+			modFolder = modFolder.replace(/patch100[\/\\]patch100/g, 'patch100');
+		}
+	}
+	
+	event.sender.send("set mods", listModuleInfos(modFolder));
 });
 
 ipcMain.on("show mods folder", () => {
-	shell.openPath(ModuleFolder);
+	// Get the appropriate mod folder based on the current patch version
+	let modFolder = ModuleFolder;
+	if (config.patchVersion === '100.02 Starscape') {
+		modFolder = path.join(path.dirname(ModuleFolder), 'patch100', 'mods');
+	}
+	
+	shell.openPath(modFolder);
 });
 
 ipcMain.on("open in notepad", (event, str) => {

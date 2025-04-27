@@ -15,7 +15,8 @@ function loadConfig() {
             noselfupdate: false,
             noupdate: false,
             noslstags: false,
-            noserverautojoin: false
+            noserverautojoin: false,
+            patchVersion: '34.04 Omni'  // Default to Patch 34 (Omni)
         };
     }
 
