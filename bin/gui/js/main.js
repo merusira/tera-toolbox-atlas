@@ -5,6 +5,12 @@ const { TeraToolboxMUI: TeraAtlasMUI, LanguageNames } = require("tera-toolbox-mu
 const Themes = ["atlas", "toolbox", "dark", "light", "retro"];
 const fs = require("fs");
 
+// Preload banner images to prevent lag when switching
+const bannerImages = {
+	"34.04 Omni": "assets/banner-omni.png",
+	"100.02 Starscape": "assets/banner-starscape.png"
+};
+
 let mui = null;
 
 function displayName(modInfo) {
@@ -18,9 +24,20 @@ function displayName(modInfo) {
 	return modInfo.rawName || modInfo.name;
 }
 
+// Preload banner images to improve performance
+function preloadBannerImages() {
+	Object.values(bannerImages).forEach(src => {
+		const img = new Image();
+		img.src = src;
+	});
+}
+
 // eslint-disable-next-line no-undef
 jQuery(($) => {
 	const contents = $("#log-contents");
+	
+	// Preload banner images when the application starts
+	preloadBannerImages();
 
 	// --------------------------------------------------------------------
 	// --------------------------- MAIN BASIC CONTROLS --------------------
@@ -86,27 +103,37 @@ jQuery(($) => {
 	// ------------------------- SETTINGS TAB -----------------------------
 	// --------------------------------------------------------------------
 	let Settings = null;
+function onSettingsChanged(newSettings) {
+	Settings = newSettings;
+	setLanguage(Settings.uilanguage);
+	setProxyRunning(ProxyRunning);
 
-	function onSettingsChanged(newSettings) {
-		Settings = newSettings;
-		setLanguage(Settings.uilanguage);
-		setProxyRunning(ProxyRunning);
-
-		$("#uilanguage").val(mui.language);
-		$("#uithemes").val(Settings.gui.theme);
-		$("#autostart").prop("checked", Settings.gui.autostart);
-		$("#updatelog").prop("checked", Settings.updatelog);
-		$("#logtimes").prop("checked", Settings.gui.logtimes);
-		$("#noupdate").prop("checked", Settings.noupdate);
-		$("#noselfupdate").prop("checked", Settings.noselfupdate);
-		$("#noslstags").prop("checked", Settings.noslstags);
-		$("#noserverautojoin").prop("checked", Settings.noserverautojoin);
-		$("#minimizetotray").prop("checked", Settings.gui.minimizetotray);
-		$("#cleanstart").prop("checked", Settings.gui.cleanstart);
-		$("#theme").attr("href", `css/themes/${Settings.gui.theme}.css`);
-		$("#removecounters").prop("checked", Settings.removecounters);
-
-	}
+	$("#uilanguage").val(mui.language);
+	$("#uithemes").val(Settings.gui.theme);
+	$("#autostart").prop("checked", Settings.gui.autostart);
+	$("#updatelog").prop("checked", Settings.updatelog);
+	$("#logtimes").prop("checked", Settings.gui.logtimes);
+	$("#noupdate").prop("checked", Settings.noupdate);
+	$("#noselfupdate").prop("checked", Settings.noselfupdate);
+	$("#noslstags").prop("checked", Settings.noslstags);
+	$("#noserverautojoin").prop("checked", Settings.noserverautojoin);
+	$("#minimizetotray").prop("checked", Settings.gui.minimizetotray);
+	$("#cleanstart").prop("checked", Settings.gui.cleanstart);
+	$("#theme").attr("href", `css/themes/${Settings.gui.theme}.css`);
+	$("#removecounters").prop("checked", Settings.removecounters);
+	
+	// Set patch version dropdowns
+	$("#patchVersion").val(Settings.patchVersion || "34.04 Omni");
+	$("#patchVersionSetting").val(Settings.patchVersion || "34.04 Omni");
+	
+	// Update patch version display in the UI
+	updatePatchVersionDisplay(Settings.patchVersion || "34.04 Omni");
+	
+	// Initialize the banner image based on the current patch version
+	const currentPatch = Settings.patchVersion || "34.04 Omni";
+	const bannerSrc = bannerImages[currentPatch] || bannerImages["34.04 Omni"];
+	$("#patchBanner").attr("src", bannerSrc);
+}
 
 	function updateSettings(newSettings) {
 		ipcRenderer.send("set config", newSettings);
@@ -198,6 +225,44 @@ jQuery(($) => {
 
 	$("#removecounters").click(() => {
 		updateSetting("removecounters", $("#removecounters").is(":checked"));
+	});
+	
+	// Patch version selection
+	function updatePatchVersionDisplay(patchVersion) {
+		// Update the patch version display in the "Get More Mods" tab
+		if (patchVersion === "34.04 Omni") {
+			$("#patch-version-display").text("Patch 34.04");
+		} else if (patchVersion === "100.02 Starscape") {
+			$("#patch-version-display").text("Patch 100.02");
+		} else {
+			$("#patch-version-display").text(patchVersion);
+		}
+		
+		// Update banner image using the preloaded paths
+		const bannerSrc = bannerImages[patchVersion] || bannerImages["34.04 Omni"];
+		$("#patchBanner").attr("src", bannerSrc);
+	}
+	
+	// Handle patch version selection in the toolbar
+	$("#patchVersion").change(() => {
+		const patchVersion = $("#patchVersion").val();
+		$("#patchVersionSetting").val(patchVersion);
+		updateSetting("patchVersion", patchVersion);
+		updatePatchVersionDisplay(patchVersion);
+		
+		// Send patch change event to the main process
+		ipcRenderer.send("switch patch", patchVersion);
+	});
+	
+	// Handle patch version selection in the settings tab
+	$("#patchVersionSetting").change(() => {
+		const patchVersion = $("#patchVersionSetting").val();
+		$("#patchVersion").val(patchVersion);
+		updateSetting("patchVersion", patchVersion);
+		updatePatchVersionDisplay(patchVersion);
+		
+		// Send patch change event to the main process
+		ipcRenderer.send("switch patch", patchVersion);
 	});
 	// Admin indicator
 	let IsAdmin = false;
