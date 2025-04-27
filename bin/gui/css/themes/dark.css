@@ -1,0 +1,101 @@
+:root {
+    --main-font-color: #b3acac;
+    --main-background: #1a1c22;
+    --border-color: #000000;
+    --selection-color: rgb(87, 19, 19);
+    --scrollbar-track-color: #232425;
+    --scrollbar-thumb-color: #252525;
+    --scrollbar-thumb-hover-color: #0a0808;
+    --header-background-color: #15181a;
+    --header-button-hover-color: #9e2b2b;
+    --main-control-background-color: #15181a;
+    --main-control-start-button-background-color: #1d1f25;
+    --main-control-start-button-hover-color: #222427;
+    --main-control-select-background-color: #25272b;
+    --main-control-hover-background-color: #222427;
+    --log-background: #15181a;
+    --log-text-color: #b3acac;
+    --log-text-warn-color: rgb(228, 155, 39);
+    --log-text-error-color: rgb(192, 73, 73);
+    --modal-box-background-color: rgba(0,0,0,0.6);
+    --modal-box-content-background-color: #222427;
+    --settings-background-color: #222427;
+    --mod-card-background-color: #181a1b;
+    --mod-card-info-font-color: #b3acac;
+    --mod-card-disabled-border-color: #ff5050;
+    --float-element-text-color: #b3acac;
+    --float-element-hover-background-color: none;
+    --control-secondary-background-color : transparent;
+}
+
+.header-button:hover {
+    color: var(--header-button-hover-color);
+    background-color: inherit;
+}
+
+.mod-action-button:hover {
+    color: var(--header-button-hover-color);
+    background-color: inherit;
+}
+
+.tabs-base label {
+    border-radius: 8px 8px 0 0;
+}
+
+.tabs-base button {
+    border-radius: 8px 8px 0 0;
+}
+
+.tab {
+    background: #14171A;
+    border: solid 4px #222426;
+}
+
+.floating-elem:hover {
+    color: #E81C4F;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+}
+
+.control-secondary {
+    border-radius: 7px;
+}
+
+.scroller {
+	height: calc(100vh - 94px);
+	overflow-y: auto;
+}
+
+.scroller-small {
+	height: calc(100vh - 126px);
+	overflow-y: auto;
+}
+
+.mod-info {
+    border-radius: 7px;
+    min-width: 95%;
+}
+
+.mod-info:hover {
+    background-color: #292F33;
+    border-color: #292F33;
+    min-width: 95%;
+}
+
+    .mod-info.disabled-border:hover {
+        border-color: var(--mod-card-disabled-border-color);
+    }
+
+.setting {
+    border-radius: 7px;
+}
+
+.modalbox-content {
+    border-radius: 7px;
+}
