@@ -1,0 +1,15 @@
+{
+    "disableAutoUpdate": false,
+    "name": "monitor-control",
+    "author": "Shalltearz",
+    "description": "Tera proxy module to remove useless effects from your screen.",
+    "version": "1.0",
+    "options": {
+        "niceName": "Monitorcontrol",
+        "guiName": "Monitorcontrol",
+        "settingsVersion": 3,
+        "settingsFile": "config.json",
+        "settingsMigrator": "settings_migrator.js"
+    },
+    "servers": ["https://raw.githubusercontent.com/tera-private-mods/monitor-control/master/"]
+}
