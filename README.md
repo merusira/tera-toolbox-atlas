@@ -74,13 +74,13 @@ TeraAtlas is based on the original TERA Toolbox and has been enhanced to support
 - meishu
 
 **Special Thanks:**
-SaltyMonkey: Installer/Modern UI stuff
-Mathicha and Pentagon: Old GUI stuff
-Foglio: Logo design
-Meishu: Original Tera-Proxy Core
-All Toolbox Translators
-All Mod Developers
-merusira: Bringing together Tera Atlas; core coding, theme, logo, continuously optimizing.
+- SaltyMonkey: Installer/Modern UI stuff
+- Mathicha and Pentagon: Old GUI stuff
+- Foglio: Logo design
+- Meishu: Original Tera-Proxy Core
+- All Toolbox Translators
+- All Mod Developers
+- merusira: Bringing together Tera Atlas; core coding, theme, logo, continuously optimizing.
 
 ## Support
 
