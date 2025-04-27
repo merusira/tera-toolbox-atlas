@@ -146,6 +146,7 @@ p {
 	vertical-align: middle;
 	padding-top: 6px;
 	font-size: 17px;
+	display: none; /* Hide the admin badge completely */
 }
 
 .admin-badge-disabled {
