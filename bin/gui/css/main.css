@@ -212,9 +212,71 @@ p {
 	transition: background ease 0.32s;
 	border: 0px;
 	width: 170px;
+	margin-left: 5px;
+	margin-right: 0;
+	cursor: pointer;
+	height: 36px; /* Ensure consistent height */
+}
+
+/* Right controls container */
+.right-controls {
+	display: flex;
+	align-items: flex-end; /* Align items to the bottom */
 	margin-left: auto;
 	margin-right: 5px;
+	gap: 0;
+}
+
+/* Patch banner styling */
+.patch-banner {
+	display: flex;
+	align-items: flex-end; /* Align to bottom */
+	justify-content: center;
+	height: 33px;
+	overflow: visible;
+	margin: 0;
+	padding: 0;
+	min-width: 180px;
+	margin-right: -22px;
+}
+
+.patch-banner img {
+	height: 65px;
+	width: auto;
+	max-width: 220px;
+	object-fit: contain;
+	transition: all 0.2s ease;
+	image-rendering: -webkit-optimize-contrast; /* Improves image clarity */
+	margin-bottom: 0; /* Align bottom with the button */
+	margin-top: -36px; /* Adjust vertical position */
+}
+
+/* Patch selector dropdown */
+.patch-selector {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+	margin-right: 5px;
+}
+
+.patch-selector select {
+	background-color: var(--main-control-background-color);
+	color: var(--main-font-color);
+	border: 1px solid var(--border-color);
+	padding: 4px 4px;
+	font-size: 14px;
 	cursor: pointer;
+	border-radius: 3px;
+	transition: background-color 0.3s ease;
+}
+
+.patch-selector select:hover {
+	background-color: var(--main-control-hover-background-color);
+}
+
+.patch-selector select:focus {
+	outline: none;
+	border-color: var(--main-control-select-background-color);
 }
 
 .tabs-base button>span:first-child {
