@@ -486,8 +486,9 @@ class TeraProxyGUI {
 	show() {
 		if (this.window !== null) {
 			this.window.show();
-			if (this.window.isMinimized())
+			if (this.window.isMinimized()) {
 				this.window.restore();
+			}
 			this.window.focus();
 			return;
 		}
@@ -554,7 +555,8 @@ class TeraProxyGUI {
 			if (config?.gui?.maximized) this.window.maximize();
 		});
 
-		this.window.on("close", () => {
+		this.window.on("close", (event) => {
+			// Save window size and position
 			config.gui.maximized = this.window.isMaximized();
 			if (!config.gui.maximized)
 			{
@@ -564,39 +566,92 @@ class TeraProxyGUI {
 			}
 
 			SaveConfiguration(config);
+			
+			// If we're not explicitly quitting, prevent the default close behavior
+			// This is needed to ensure the app doesn't close when the X button is clicked
+			if (!app.isQuitting) {
+				event.preventDefault();
+				this.window.hide();
+				return false;
+			}
+			
+			return true;
 		});
 		
-		this.window.on('minimize', () => { this.window.hide(); });
+		this.window.on('minimize', () => {
+			this.window.hide();
+		});
 		this.window.on("closed", () => { StopProxy(); this.window = null; });
 		
 		// Initialize tray icon
-		this.tray = new Tray(guiIcon);
-		this.tray.setToolTip("TeraAtlas");
-		this.tray.setContextMenu(Menu.buildFromTemplate([
-			{
-				"label": mui.get("loader-gui/tray/show") || "Show",
-				"click": () => {
-					if (this.window) {
-						this.window.show();
-						if (this.window.isMinimized())
-							this.window.restore();
-						this.window.focus();
+		try {
+			this.tray = new Tray(guiIcon);
+			this.tray.setToolTip("TeraAtlas - Left-click to show/hide, Right-click for menu");
+			
+			// Create context menu template
+			const contextMenu = Menu.buildFromTemplate([
+				{
+					label: "Show/Hide Window",
+					click: () => {
+						if (this.window) {
+							if (this.window.isVisible()) {
+								this.window.hide();
+							} else {
+								this.showFromTray();
+							}
+						}
+					}
+				},
+				{
+					type: "separator"
+				},
+				{
+					label: "Exit",
+					click: () => {
+						// Set a flag to indicate we're quitting
+						app.isQuitting = true;
+						
+						// Destroy the tray icon first
+						if (this.tray) {
+							this.tray.destroy();
+							this.tray = null;
+						}
+						
+						// Stop the proxy if it's running
+						if (proxy && proxyRunning) {
+							StopProxy().then(() => {
+								if (this.window) {
+									this.window.destroy();
+								}
+								setTimeout(() => app.exit(), 100);
+							});
+						} else {
+							if (this.window) {
+								this.window.destroy();
+							}
+							setTimeout(() => app.exit(), 100);
+						}
 					}
 				}
-			},
-			{
-				"type": "separator"
-			},
-			{
-				"label": mui.get("loader-gui/tray/quit") || "Quit",
-				"click": () => { app.exit(); }
-			}
-		]));
-
-		this.tray.on("click", () => {
-			if (this.window)
-				this.window.isVisible() ? this.window.hide() : this.window.show();
-		});
+			]);
+			
+			// Set the context menu
+			this.tray.setContextMenu(contextMenu);
+			
+			// Add click handler
+			this.tray.on("click", () => {
+				// Toggle window visibility on left click
+				if (this.window) {
+					if (this.window.isVisible()) {
+						this.window.hide();
+					} else {
+						this.showFromTray();
+					}
+				}
+			});
+		} catch (e) {
+			console.error("Error setting up tray icon:", e);
+		}
 
 		// Redirect console to built-in one
 		const nodeConsole = require("console");
@@ -645,17 +700,83 @@ class TeraProxyGUI {
 			this.window.hide();
 	}
 
+	showFromTray() {
+		if (this.window !== null) {
+			try {
+				// Try multiple approaches to ensure the window is shown
+				if (this.window.isMinimized()) {
+					this.window.restore();
+				}
+				
+				if (!this.window.isVisible()) {
+					this.window.show();
+				}
+				
+				this.window.focus();
+			} catch (e) {
+				console.error("Error in showFromTray:", e);
+			}
+		} else {
+			// If window doesn't exist, call the show method to create it
+			this.show();
+		}
+	}
+
 	close() {
 		if (this.window !== null) {
-			stopUpdateCheck();
-			StopProxy();
-
-			// Clean up HTTP/HTTPS connections
-			const { cleanupConnections } = require("./utils/http-client");
-			cleanupConnections();
-
-			this.window.close();
-			this.window = null;
+			// Set the isQuitting flag to ensure the app exits properly
+			app.isQuitting = true;
+			
+			try {
+				stopUpdateCheck();
+				
+				// Destroy the tray icon first to prevent it from lingering
+				if (this.tray) {
+					this.tray.destroy();
+					this.tray = null;
+				}
+				
+				// Stop the proxy if it's running
+				if (proxy && proxyRunning) {
+					StopProxy().then(() => {
+						// Clean up HTTP/HTTPS connections
+						try {
+							const { cleanupConnections } = require("./utils/http-client");
+							cleanupConnections();
+						} catch (e) {
+							console.error("Error cleaning up connections:", e);
+						}
+						
+						// Use destroy instead of close to bypass the close event handler
+						if (this.window) {
+							this.window.destroy();
+							this.window = null;
+						}
+						
+						setTimeout(() => app.exit(), 100);
+					});
+				} else {
+					// Clean up HTTP/HTTPS connections
+					try {
+						const { cleanupConnections } = require("./utils/http-client");
+						cleanupConnections();
+					} catch (e) {
+						console.error("Error cleaning up connections:", e);
+					}
+					
+					// Use destroy instead of close to bypass the close event handler
+					if (this.window) {
+						this.window.destroy();
+						this.window = null;
+					}
+					
+					setTimeout(() => app.exit(), 100);
+				}
+			} catch (e) {
+				console.error("Error in close method:", e);
+				// Force exit as a last resort
+				app.exit(1);
+			}
 		}
 	}
 
@@ -714,6 +835,11 @@ module.exports = function StartGUI() {
 			app.on("second-instance", () => {
 				if (gui)
 					gui.show();
+			});
+
+			// Set isQuitting flag when app is about to quit
+			app.on("before-quit", () => {
+				app.isQuitting = true;
 			});
 
 			app.on("window-all-closed", () => {
