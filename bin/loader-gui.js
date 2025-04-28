@@ -57,6 +57,17 @@ function Migration() {
 	}
 }
 
+// Helper function to get display name with HTML formatting
+function displayName(modInfo) {
+    if (modInfo.options) {
+        if (modInfo.options.guiName)
+            return modInfo.options.guiName;
+        if (modInfo.options.cliName)
+            return modInfo.options.cliName;
+    }
+    return modInfo.rawName || modInfo.name;
+}
+
 // Installed mod management
 let AvailableModuleListUrl = "https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json";
 const { listModuleInfos, installModule, uninstallModule, toggleAutoUpdate, toggleLoad } = require("tera-mod-management");
@@ -381,20 +392,6 @@ ipcMain.on("switch patch", (event, patchVersion) => {
 	}
 });
 
-// Add handler for exit application message
-ipcMain.on("exit application", () => {
-	// Set the isQuitting flag to ensure the app exits properly
-	app.isQuitting = true;
-	
-	// If gui exists, call its close method to properly clean up
-	if (gui) {
-		gui.close();
-	} else {
-		// Force exit as a fallback
-		app.exit();
-	}
-});
-
 ipcMain.on("get installable mods", (event, _) => {
 	// Always clear the cache to force a refresh
 	CachedAvailableModuleList = null;
@@ -415,13 +412,13 @@ ipcMain.on("install mod", (event, modInfo) => {
 	}
 	
 	installModule(modFolder, modInfo);
-	console.log(mui.get("loader-gui/mod-installed", { "name": modInfo.name }));
+	console.log(mui.get("loader-gui/mod-installed", { "name": displayName(modInfo) }));
 	getInstallableMods().then(mods => event.sender.send("set installable mods", mods));
 });
 
 ipcMain.on("toggle mod load", (event, modInfo) => {
 	toggleLoad(modInfo);
-	console.log(mui.get("loader-gui/mod-load-toggled", { "enabled": modInfo.disabled, "name": modInfo.rawName }));
+	console.log(mui.get("loader-gui/mod-load-toggled", { "enabled": modInfo.disabled, "name": displayName(modInfo) }));
 	
 	// Get the appropriate mod folder based on the current patch version
 	let modFolder = ModuleFolder;
@@ -440,7 +437,7 @@ ipcMain.on("toggle mod load", (event, modInfo) => {
 
 ipcMain.on("toggle mod autoupdate", (event, modInfo) => {
 	toggleAutoUpdate(modInfo);
-	console.log(mui.get("loader-gui/mod-updates-toggled", { "updatesEnabled": modInfo.disableAutoUpdate, "name": modInfo.rawName }));
+	console.log(mui.get("loader-gui/mod-updates-toggled", { "updatesEnabled": modInfo.disableAutoUpdate, "name": displayName(modInfo) }));
 	
 	// Get the appropriate mod folder based on the current patch version
 	let modFolder = ModuleFolder;
@@ -459,7 +456,7 @@ ipcMain.on("toggle mod autoupdate", (event, modInfo) => {
 
 ipcMain.on("uninstall mod", (event, modInfo) => {
 	uninstallModule(modInfo);
-	console.log(mui.get("loader-gui/mod-uninstalled", { "name": modInfo.rawName }));
+	console.log(mui.get("loader-gui/mod-uninstalled", { "name": displayName(modInfo) }));
 	
 	// Get the appropriate mod folder based on the current patch version
 	let modFolder = ModuleFolder;
@@ -488,6 +485,19 @@ ipcMain.on("show mods folder", () => {
 
 ipcMain.on("open in notepad", (event, str) => {
 	exec(`notepad "${str}"`)
+});
+
+// Add handler for exit application
+ipcMain.on("exit application", () => {
+	// Set the isQuitting flag to ensure the app exits properly
+	app.isQuitting = true;
+	
+	// Close the application
+	if (gui && gui.window) {
+		gui.close();
+	} else {
+		app.exit();
+	}
 });
 
 // GUI
