@@ -65,14 +65,12 @@ jQuery(($) => {
 	// ----------------------------- MAIN ---------------------------------
 	// --------------------------------------------------------------------
 	$("#minimize-btn").click(() => {
-		if (Settings.gui.minimizetotray)
-			remote.getCurrentWindow().hide();
-		else
-			remote.getCurrentWindow().minimize();
+		remote.getCurrentWindow().hide();
 	});
 
 	$("#close-btn").click(() => {
-		remote.getCurrentWindow().close();
+		// Send a message to the main process to exit the application completely
+		ipcRenderer.send("exit application");
 	});
 
 	$("#info-btn").click(() => {
@@ -117,7 +115,6 @@ function onSettingsChanged(newSettings) {
 	$("#noselfupdate").prop("checked", Settings.noselfupdate);
 	$("#noslstags").prop("checked", Settings.noslstags);
 	$("#noserverautojoin").prop("checked", Settings.noserverautojoin);
-	$("#minimizetotray").prop("checked", Settings.gui.minimizetotray);
 	$("#cleanstart").prop("checked", Settings.gui.cleanstart);
 	$("#theme").attr("href", `css/themes/${Settings.gui.theme}.css`);
 	$("#removecounters").prop("checked", Settings.removecounters);
@@ -215,10 +212,6 @@ function onSettingsChanged(newSettings) {
 		updateSetting("noserverautojoin", $("#noserverautojoin").is(":checked"));
 	});
 
-	$("#minimizetotray").click(() => {
-		updateGUISetting("minimizetotray", $("#minimizetotray").is(":checked"));
-	});
-	
 	$("#cleanstart").click(() => {
 		updateGUISetting("cleanstart", $("#cleanstart").is(":checked"));
 	});
