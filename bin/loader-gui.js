@@ -381,6 +381,20 @@ ipcMain.on("switch patch", (event, patchVersion) => {
 	}
 });
 
+// Add handler for exit application message
+ipcMain.on("exit application", () => {
+	// Set the isQuitting flag to ensure the app exits properly
+	app.isQuitting = true;
+	
+	// If gui exists, call its close method to properly clean up
+	if (gui) {
+		gui.close();
+	} else {
+		// Force exit as a fallback
+		app.exit();
+	}
+});
+
 ipcMain.on("get installable mods", (event, _) => {
 	// Always clear the cache to force a refresh
 	CachedAvailableModuleList = null;
