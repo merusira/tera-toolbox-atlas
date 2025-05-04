@@ -65,7 +65,7 @@ jQuery(($) => {
 	// ----------------------------- MAIN ---------------------------------
 	// --------------------------------------------------------------------
 	$("#minimize-btn").click(() => {
-		remote.getCurrentWindow().hide();
+		remote.getCurrentWindow().minimize();
 	});
 
 	$("#close-btn").click(() => {
