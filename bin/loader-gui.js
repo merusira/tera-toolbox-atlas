@@ -563,7 +563,7 @@ class TeraProxyGUI {
 			resizable: true,
 			centered: true,
 			show: false,
-			skipTaskbar: true,
+			skipTaskbar: false,
 			webPreferences: {
 				nodeIntegration: true,
 				enableRemoteModule: true,
@@ -588,23 +588,18 @@ class TeraProxyGUI {
 				config.gui.width = size[0];
 				config.gui.height = size[1];
 			}
-
 			SaveConfiguration(config);
-			
-			// If we're not explicitly quitting, prevent the default close behavior
-			// This is needed to ensure the app doesn't close when the X button is clicked
-			if (!app.isQuitting) {
-				event.preventDefault();
-				this.window.hide();
-				return false;
-			}
-			
+
 			return true;
 		});
-		
-		this.window.on('minimize', () => {
-			this.window.hide();
+		this.window.on('minimize', (event) => {
+			// Explicitly minimize the window instead of hiding it
+			// This ensures it stays in the taskbar when minimized
+			if (this.window) {
+				this.window.minimize();
+			}
 		});
+		
 		this.window.on("closed", () => { StopProxy(); this.window = null; });
 		
 		// Initialize tray icon
