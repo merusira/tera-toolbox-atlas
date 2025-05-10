@@ -29,7 +29,7 @@ class PatchManager extends EventEmitter {
     // Get the module list URL for the current patch
     getModuleListUrl() {
         if (this.currentPatch === '100.02 Starscape') {
-            return 'https://raw.githubusercontent.com/tera-private-toolbox/tera-mods/master/modulelist.json';
+            return 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-10002.json';
         } else {
             return 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json';
         }
