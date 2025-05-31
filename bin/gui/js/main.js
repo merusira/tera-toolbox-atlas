@@ -7,7 +7,7 @@ const fs = require("fs");
 
 // Preload banner images to prevent lag when switching
 const bannerImages = {
-	"34.04 Omni": "assets/banner-omni.png",
+	"31.04 Omni": "assets/banner-omni.png",
 	"100.02 Starscape": "assets/banner-starscape.png"
 };
 
@@ -120,15 +120,15 @@ function onSettingsChanged(newSettings) {
 	$("#removecounters").prop("checked", Settings.removecounters);
 	
 	// Set patch version dropdowns
-	$("#patchVersion").val(Settings.patchVersion || "34.04 Omni");
-	$("#patchVersionSetting").val(Settings.patchVersion || "34.04 Omni");
+	$("#patchVersion").val(Settings.patchVersion || "31.04 Omni");
+	$("#patchVersionSetting").val(Settings.patchVersion || "31.04 Omni");
 	
 	// Update patch version display in the UI
-	updatePatchVersionDisplay(Settings.patchVersion || "34.04 Omni");
-	
+	updatePatchVersionDisplay(Settings.patchVersion || "31.04 Omni");
+
 	// Initialize the banner image based on the current patch version
-	const currentPatch = Settings.patchVersion || "34.04 Omni";
-	const bannerSrc = bannerImages[currentPatch] || bannerImages["34.04 Omni"];
+	const currentPatch = Settings.patchVersion || "31.04 Omni";
+	const bannerSrc = bannerImages[currentPatch] || bannerImages["31.04 Omni"];
 	$("#patchBanner").attr("src", bannerSrc);
 }
 
@@ -223,8 +223,8 @@ function onSettingsChanged(newSettings) {
 	// Patch version selection
 	function updatePatchVersionDisplay(patchVersion) {
 		// Update the patch version display in the "Get More Mods" tab
-		if (patchVersion === "34.04 Omni") {
-			$("#patch-version-display").text("Patch 34.04");
+		if (patchVersion === "31.04 Omni") {
+			$("#patch-version-display").text("Patch 31.04");
 		} else if (patchVersion === "100.02 Starscape") {
 			$("#patch-version-display").text("Patch 100.02");
 		} else {
@@ -232,7 +232,7 @@ function onSettingsChanged(newSettings) {
 		}
 		
 		// Update banner image using the preloaded paths
-		const bannerSrc = bannerImages[patchVersion] || bannerImages["34.04 Omni"];
+		const bannerSrc = bannerImages[patchVersion] || bannerImages["31.04 Omni"];
 		$("#patchBanner").attr("src", bannerSrc);
 	}
 	
