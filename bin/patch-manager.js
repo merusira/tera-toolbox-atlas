@@ -7,14 +7,14 @@ class PatchManager extends EventEmitter {
     constructor(rootDir) {
         super();
         this.rootDir = rootDir;
-        this.currentPatch = '34.04 Omni'; // Default to Patch 34
+        this.currentPatch = '31.04 Omni'; // Default to Patch 31
         this.moduleCache = new Map(); // Cache for loaded modules
     }
 
     // Get the appropriate folder path based on the current patch
     getPath(folderType) {
-        if (this.currentPatch === '34.04 Omni') {
-            // Use default folders for Patch 34
+        if (this.currentPatch === '31.04 Omni') {
+            // Use default folders for Patch 31
             return path.join(this.rootDir, folderType);
         } else if (this.currentPatch === '100.02 Starscape') {
             // Use patch100 folder for Patch 100
@@ -29,7 +29,7 @@ class PatchManager extends EventEmitter {
     // Get the module list URL for the current patch
     getModuleListUrl() {
         if (this.currentPatch === '100.02 Starscape') {
-            return 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-10002.json';
+            return 'https://raw.githubusercontent.com/tera-private-toolbox/tera-mods/master/modulelist.json';
         } else {
             return 'https://raw.githubusercontent.com/merusira/moduleLists/master/moduleList-3104.json';
         }
@@ -39,7 +39,7 @@ class PatchManager extends EventEmitter {
     cleanupPatchResources(patchVersion) {
         // Determine the patch prefix
         let patchPrefix = '';
-        if (patchVersion === '34.04 Omni') {
+        if (patchVersion === '31.04 Omni') {
             patchPrefix = '';
         } else if (patchVersion === '100.02 Starscape') {
             patchPrefix = 'patch100';
@@ -88,7 +88,7 @@ class PatchManager extends EventEmitter {
             const nodeModulesPath = this.getPath('node_modules');
             
             // Remove old node_modules path if it was added
-            if (oldPatch !== '34.04 Omni') {
+            if (oldPatch !== '31.04 Omni') {
                 // Extract the patch number for the old patch
                 const oldPatchNumber = oldPatch.split(' ')[0].split('.')[0];
                 const oldNodeModulesPath = path.join(this.rootDir, `patch${oldPatchNumber}`, 'node_modules');
@@ -106,7 +106,7 @@ class PatchManager extends EventEmitter {
             }
             
             // Add new node_modules path if needed
-            if (newPatch !== '34.04 Omni') {
+            if (newPatch !== '31.04 Omni') {
                 if (!module.paths.includes(nodeModulesPath)) {
                     module.paths.unshift(nodeModulesPath);
                 }

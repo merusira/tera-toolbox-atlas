@@ -92,14 +92,14 @@ class TeraProxy {
         global.TeraProxy.PatchManager = this.patchManager;
         
         // Set initial patch version
-        this.patchManager.currentPatch = config.patchVersion || '34.04 Omni';
+        this.patchManager.currentPatch = config.patchVersion || '31.04 Omni';
         
         // Get folder paths based on current patch
         this.modFolder = this.patchManager.getPath('mods');
         this.dataFolder = this.patchManager.getPath('data');
         
         // Add node_modules path if needed
-        if (this.patchManager.currentPatch !== '34.04 Omni') {
+        if (this.patchManager.currentPatch !== '31.04 Omni') {
             const nodeModulesPath = this.patchManager.getPath('node_modules');
             if (!module.paths.includes(nodeModulesPath)) {
                 module.paths.unshift(nodeModulesPath);
