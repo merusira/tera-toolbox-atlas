@@ -12,7 +12,7 @@ TeraAtlas is a comprehensive modding framework for TERA that enables switching b
 
 ## Currently Supported Patches
 
-- **Patch 34.04** (Omni Private Server)
+- **Patch 31.04** (Omni Private Server)
 - **Patch 100.02** (Starscape Private Server)
 
 Additional patch support may be added upon request.
@@ -36,7 +36,7 @@ No special installation is needed - the program handles all setup automatically.
 
 ### Managing Mods
 
-- Mods for **Patch 34.04** should be placed in the main `mods` folder
+- Mods for **Patch 31.04** should be placed in the main `mods` folder
 - Mods for **Patch 100.02** should be placed in the `patch100/mods` folder
 - For other patches, place mods in the corresponding `patch[number]/mods` folder
 
@@ -52,7 +52,7 @@ No special installation is needed - the program handles all setup automatically.
 Some mods might not be compatible across different patch versions. If you don't see your favorite mod in the "Get More Mods" tab for your selected patch:
 
 1. Download the mod manually
-2. Place patch 34 mods in the `mods` folder
+2. Place patch 31 mods in the `mods` folder
 3. Place patch 100 mods in the `patch100/mods` folder
 4. Place other patch mods in their respective `patch[number]/mods` folder
 
